@@ -17,17 +17,17 @@ def merge_chromo_haplotype(chromo_info1: ChromosomoHaplotype, chromo_info2: Chro
 
 def child_haplotype(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype, m_info: ChromosomoHaplotype):
     merge_phased_set = merge_unphased_snp(c_info, f_info, m_info)
-    print(len(merge_phased_set.records_idx))
-    phase_set_keys = list(c_info.chromo_phase_set.keys())
-    start_phase_set = c_info.chromo_phase_set[phase_set_keys[0]]
-    for phase_set_key in phase_set_keys:
-        if phase_set_key == phase_set_keys[0]:
-            continue
-        phase_set = c_info.chromo_phase_set[phase_set_key]
-        if phase_set.origin == 2:
-            phase_set.build_origin()
-        if phase_set.origin != 2:
-            c_info.connect_phase_set(start_phase_set, phase_set)
+    # print(len(merge_phased_set.records_idx))
+    # phase_set_keys = list(c_info.chromo_phase_set.keys())
+    # start_phase_set = c_info.chromo_phase_set[phase_set_keys[0]]
+    # for phase_set_key in phase_set_keys:
+    #     if phase_set_key == phase_set_keys[0]:
+    #         continue
+    #     phase_set = c_info.chromo_phase_set[phase_set_key]
+    #     if phase_set.origin == 2:
+    #         phase_set.build_origin()
+    #     if phase_set.origin != 2:
+    #         c_info.connect_phase_set(start_phase_set, phase_set)
 
 def p_hap_source(c_r: Record, p_r: Record):
     if c_r.hap1 == p_r.hap1:
@@ -92,10 +92,12 @@ def merge_unphased_snp(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype,
             if m_rec.is_heterozygous():
                 continue
             c_hap_source(c_rec, f_rec, 0)
-        merged_phase_set.insert_record(c_rec)
-    merged_phase_set.set_origin(0)
-    merged_phase_set.finalize_phaseset_label()
-    return merged_phase_set
+        # if child haplotype can infered from parent
+        if c_rec.origin != -1 and c_rec.origin != 2:
+            c_phase_set.insert_record(c_rec)
+    c_phase_set.set_origin(0)
+    c_phase_set.finalize_phaseset_label()
+    return c_phase_set
 
 
 def write_chromosome(in_vcf: vcf.Reader, out_vcf: vcf.Writer, chromo_haplotype: ChromosomoHaplotype, contig: str):

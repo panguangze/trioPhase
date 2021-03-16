@@ -3,58 +3,36 @@ import graph
 import numpy as np
 
 class Record:
-    def __init__(self, pos = 0, gt0 = 0, gt1 = 0, PS = 0, idx=0):
-        self.pos = pos
-        if gt0 == 2 or gt1 == 2: # genotype 1/2: 1 -> 0 | 2 -> 1
-            gt0 -= 1
-            gt1 -= 1
-        self.hap = gt0
-        self.hap1 = gt1 
-        self.ps = PS
-        self.idx = idx
-        # origin 0 father, 1 mother, unknown
-        self.origin = 2
-
     def set_origin(self,o):
         self.origin = o
 
-    def copy_from_rec(self, rec: vcf.model._Record, PS: int, idx:int):
+    def __init__(self, rec: vcf.model._Record, PS: int, idx:int):
+        allels=[rec.REF, rec.ALT]
         self.pos = rec.POS
         gt_str = rec.samples[0]['GT']
         gt0 = int(gt_str[0])
         gt1 = int(gt_str[2])
-        if gt0 == 2 or gt1 == 2: # genotype 1/2: 1 -> 0 | 2 -> 1
-            gt0 -= 1
-            gt1 -= 1
-        self.hap = gt0
-        self.hap1 = gt1
+        if gt0 == 0:
+            self.hap1 = rec.REF
+        else:
+            self.hap1 = rec.ALT[gt0 - 1]
+        if gt1 == 0:
+            self.hap2 = rec.REF
+        else:
+            self.hap2 = rec.ALT[gt1 - 1]
         self.ps = PS
         self.idx = idx
     
     def is_heterozygous(self):
-        return self.hap != self.hap1
-    
-    
+        return self.hap1 != self.hap2
+
     def flip(self):
-        if self.hap == 0:
-            self.hap = 1
-        elif self.hap == 1:
-            self.hap = 0
+        t = hap2
+        self.hap2 = self.hap1
+        self.hap1 = t
     
     def phased(self):
         return self.ps != 0
-
-    def copy_info(self, record):
-        if self.pos != record.pos:
-            return
-        self.hap = record.pos
-        self.ps = record.ps
-
-    def switched(self, adjacent_record):
-        if self.hap == adjacent_record.hap:
-            return False
-        else:
-            return True
     
     def finalize_record(self, rec: vcf.model._Record):
         if not self.phased():
