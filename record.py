@@ -1,5 +1,4 @@
 import vcf
-import graph
 import numpy as np
 
 class Record:
