@@ -14,12 +14,12 @@ def merge_chromo_haplotype(chromo_info1: ChromosomoHaplotype, chromo_info2: Chro
     print("merged")
     chromo_info1.finalize_chromosome_haplotype()
 
-def merge_set(c_info: ChromosomoHaplotype, c_phase_set):
+def merge_set(c_info: ChromosomoHaplotype, c_phase_set, child=True):
     phase_set_keys = list(c_info.chromo_phase_set.keys())
     for phase_set_key in phase_set_keys:
         phase_set = c_info.chromo_phase_set[phase_set_key]
         if phase_set.origin == 2:
-            phase_set.build_origin()
+            phase_set.build_origin(child)
         if phase_set.origin != 2:
             if phase_set.origin == 1:
                 phase_set.flip()
@@ -28,8 +28,8 @@ def merge_set(c_info: ChromosomoHaplotype, c_phase_set):
 def child_haplotype(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype, m_info: ChromosomoHaplotype):
     c_phase_set, f_phase_set, m_phase_set = merge_unphased_snp(c_info, f_info, m_info)
     merge_set(c_info, c_phase_set)
-    merge_set(f_info, f_phase_set)
-    merge_set(m_info, m_phase_set)
+    merge_set(f_info, f_phase_set, False)
+    merge_set(m_info, m_phase_set, False)
 
     # print(len(merge_phased_set.records_idx))
     # phase_set_keys = list(c_info.chromo_phase_set.keys())
