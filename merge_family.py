@@ -256,9 +256,9 @@ def main():
     c_vcf = vcf.Reader(filename=args.child)
     if not os.path.exists(args.out):
         os.mkdir(args.out)
-    c1 = args.child.split("/")[-1]
-    f1 = args.father.split("/")[-1]
-    m1 = args.mother.split("/")[-1]
+    c1 = args.child.split("/")[-1].replace(".gz","")
+    f1 = args.father.split("/")[-1].replace(".gz","")
+    m1 = args.mother.split("/")[-1].replace(".gz","")
     child_out_vcf = vcf.Writer(open(os.path.join(args.out, c1), 'w'), c_vcf)
     f_out_vcf = vcf.Writer(open(os.path.join(args.out, f1), 'w'), f_vcf)
     m_out_vcf = vcf.Writer(open(os.path.join(args.out, m1), 'w'), m_vcf)

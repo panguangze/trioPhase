@@ -110,14 +110,14 @@ class PhaseSet:
                 m_support_count += 1
         t = abs(f_support_count - m_support_count)
         if not child:
-            if f_support_count > m_support_count and f_support_count > len(self.records_idx)/2:
+            if f_support_count > m_support_count and f_support_count >= len(self.records_idx)/2:
                 self.origin = 0
-            if m_support_count > f_support_count and m_support_count > len(self.records_idx)/2:
+            if m_support_count > f_support_count and m_support_count >= len(self.records_idx)/2:
                 self.origin = 1
         else:
-            if f_support_count > m_support_count and f_support_count > len(self.records_idx)/4:
+            if f_support_count > m_support_count and f_support_count >= len(self.records_idx)/4:
                 self.origin = 0
-            if m_support_count > f_support_count and f_support_count > len(self.records_idx)/4:
+            if m_support_count > f_support_count and f_support_count >= len(self.records_idx)/4:
                 self.origin = 1            
 
         # self.origin = 1
