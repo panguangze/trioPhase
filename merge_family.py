@@ -14,37 +14,51 @@ def merge_chromo_haplotype(chromo_info1: ChromosomoHaplotype, chromo_info2: Chro
     print("merged")
     chromo_info1.finalize_chromosome_haplotype()
 
+def merge_set(c_info: ChromosomoHaplotype, c_phase_set):
+    phase_set_keys = list(c_info.chromo_phase_set.keys())
+    for phase_set_key in phase_set_keys:
+        phase_set = c_info.chromo_phase_set[phase_set_key]
+        if phase_set.origin == 2:
+            phase_set.build_origin()
+        if phase_set.origin != 2:
+            if phase_set.origin == 1:
+                phase_set.flip()
+            c_info.connect_phase_set(c_phase_set, phase_set)
 
 def child_haplotype(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype, m_info: ChromosomoHaplotype):
-    merge_phased_set = merge_unphased_snp(c_info, f_info, m_info)
+    c_phase_set, f_phase_set, m_phase_set = merge_unphased_snp(c_info, f_info, m_info)
+    merge_set(c_info, c_phase_set)
+    merge_set(f_info, f_phase_set)
+    merge_set(m_info, m_phase_set)
+
     # print(len(merge_phased_set.records_idx))
     # phase_set_keys = list(c_info.chromo_phase_set.keys())
-    # start_phase_set = c_info.chromo_phase_set[phase_set_keys[0]]
     # for phase_set_key in phase_set_keys:
-    #     if phase_set_key == phase_set_keys[0]:
-    #         continue
     #     phase_set = c_info.chromo_phase_set[phase_set_key]
     #     if phase_set.origin == 2:
     #         phase_set.build_origin()
     #     if phase_set.origin != 2:
-    #         c_info.connect_phase_set(start_phase_set, phase_set)
+    #         if phase_set.origin == 1:
+    #             phase_set.flip()
+    #         c_info.connect_phase_set(c_phase_set, phase_set)
+    # print(merge_phased_set)
 
 def p_hap_source(c_r: Record, p_r: Record):
-    if c_r.hap1 == p_r.hap1:
+    if c_r.hap0 == p_r.hap0:
         p_r.origin = 0
-    if c_r.hap1 == p_r.hap2:
+    if c_r.hap0 == p_r.hap1:
         p_r.origin = 1
 
 def c_hap_source(c_r: Record, p_r: Record, origin):
-    if c_r.hap1 == p_r.hap1:
+    if c_r.hap0 == p_r.hap0:
         c_r.origin = origin
-    if c_r.hap2 == p_r.hap1:
-        c_r.origin = math.abs(origin - 1)
+    if c_r.hap1 == p_r.hap0:
+        c_r.origin = abs(origin - 1)
 
 def merge_unphased_snp(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype, m_info: ChromosomoHaplotype):
-    c_phase_set = PhaseSet(1)
-    f_phase_set = PhaseSet(1)
-    m_phase_set = PhaseSet(1)
+    c_phase_set = PhaseSet(1, 0)
+    f_phase_set = PhaseSet(1, 0)
+    m_phase_set = PhaseSet(1, 0)
     for pos in c_info.chromo_record.keys():
         c_rec = c_info.chromo_record[pos]
         f_rec: Record = None
@@ -63,7 +77,7 @@ def merge_unphased_snp(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype,
             if m_rec != None and m_rec.is_heterozygous():
                 p_hap_source(c_rec, m_rec)
                 if m_rec.origin != -1 and m_rec.origin != 2:
-                    m_phase_set.insert_record(f_rec)
+                    m_phase_set.insert_record(m_rec)
             continue
         
         # if child is heterozygous but parent none
@@ -77,7 +91,7 @@ def merge_unphased_snp(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype,
             if f_h and m_h:
                 continue
             # f and m both home
-            if not f_h and not m_h and f_rec.hap1 == m_rec.hap1:
+            if not f_h and not m_h and f_rec.hap0 == m_rec.hap0:
                 continue
             if not f_h:
                 c_hap_source(c_rec, f_rec, 0)
@@ -91,13 +105,16 @@ def merge_unphased_snp(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype,
             m_h = m_rec.is_heterozygous()
             if m_rec.is_heterozygous():
                 continue
-            c_hap_source(c_rec, f_rec, 0)
+            c_hap_source(c_rec, m_rec, 0)
         # if child haplotype can infered from parent
-        if c_rec.origin != -1 and c_rec.origin != 2:
+        if c_rec.origin != -1 and not c_rec.phased():
+            if c_rec.origin == 1:
+                c_rec.flip()
             c_phase_set.insert_record(c_rec)
-    c_phase_set.set_origin(0)
     c_phase_set.finalize_phaseset_label()
-    return c_phase_set
+    f_phase_set.finalize_phaseset_label()
+    m_phase_set.finalize_phaseset_label()
+    return [c_phase_set, f_phase_set, m_phase_set]
 
 
 def write_chromosome(in_vcf: vcf.Reader, out_vcf: vcf.Writer, chromo_haplotype: ChromosomoHaplotype, contig: str):
@@ -250,14 +267,19 @@ def main():
             f_vcf.fetch(chromo)
         except:
             continue
-        [f_chromo_info, m_chromo_info, c_chromo_info] = [ChromosomoHaplotype(f, str(chromo)) for f in
-                                                         [f_vcf, m_vcf, c_vcf]]
+        f_chromo_info = ChromosomoHaplotype(f_vcf, str(chromo))
+        m_chromo_info = ChromosomoHaplotype(m_vcf, str(chromo))
+        c_chromo_info = ChromosomoHaplotype(c_vcf, str(chromo))
+
         # merge_chromo_haplotype(c_chromo_info, f_chromo_info)
         # merge_chromo_haplotype(c_chromo_info, m_chromo_info)
         child_haplotype(c_chromo_info, f_chromo_info, m_chromo_info)
         # merge_chromo_haplotype(c_chromo_info, f_chromo_info)
         # merge_chromo_haplotype(c_chromo_info, m_chromo_info)
         write_chromosome(c_vcf, child_out_vcf, c_chromo_info, str(chromo))
+        write_chromosome(f_vcf, child_out_vcf, f_chromo_info, str(chromo))
+        write_chromosome(m_vcf, child_out_vcf, m_chromo_info, str(chromo))
+
     child_out_vcf.close()
     f_out_vcf.close()
     m_out_vcf.close()

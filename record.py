@@ -13,24 +13,32 @@ class Record:
         gt0 = int(gt_str[0])
         gt1 = int(gt_str[2])
         if gt0 == 0:
+            self.hap0 = rec.REF
+        else:
+            self.hap0 = rec.ALT[gt0 - 1]
+        if gt1 == 0:
             self.hap1 = rec.REF
         else:
-            self.hap1 = rec.ALT[gt0 - 1]
-        if gt1 == 0:
-            self.hap2 = rec.REF
-        else:
-            self.hap2 = rec.ALT[gt1 - 1]
+            self.hap1 = rec.ALT[gt1 - 1]
         self.ps = PS
         self.idx = idx
+        # for child, 0 hap0 from f, 1 hap1 from f
+        # for parent 0 hap0 give c, 1 hap1 give child
+        # -1 unphased, 2 phased but not sure from
+        if PS == 0:
+            self.origin = -1
+        else:
+            self.origin = 2
     
     def is_heterozygous(self):
-        return self.hap1 != self.hap2
+        return self.hap0 != self.hap1
 
     def flip(self):
-        t = hap2
-        self.hap2 = self.hap1
-        self.hap1 = t
-    
+        t = self.hap1
+        self.hap1 = self.hap0
+        self.hap0 = t
+        self.origin = abs(self.origin - 1)
+
     def phased(self):
         return self.ps != 0
     
@@ -39,15 +47,18 @@ class Record:
             return
 
         gt_str = rec.samples[0]['GT']
-        gt0 = int(gt_str[0])
-        gt1 = int(gt_str[2])
-        hap0 = self.hap
-        hap1 = abs(self.hap - 1)
-        if gt0 == 2 or gt1 == 2:
-            hap0 += 1
-            hap1 += 1
-        
-        gt_str = str(hap0) + '|' + str(hap1)
+        gt0 = gt_str[0]
+        gt1 = gt_str[2]
+        # hap0 = self.hap
+        # hap1 = abs(self.hap - 1)
+        # if gt0 == 2 or gt1 == 2:
+        #     hap0 += 1
+        #     hap1 += 1
+        if self.origin == 0:
+            gt_str = gt0 + '|' + gt1
+        elif self.origin ==1:
+            gt_str = gt1 + '|' + gt0
+
 
         if self.phased():
             if ('PS' in rec.FORMAT.split(':')):
@@ -66,11 +77,12 @@ class Record:
 
 
 class PhaseSet:
-    def __init__(self, starting_pos):
+    def __init__(self, starting_pos, origin = 2):
         self.starting_pos = starting_pos
         self.records_idx = set()
         self.records = dict()
-        self.origin = 2
+        # same as record origin
+        self.origin = origin
 
     def contain_record(self, idx):
         return idx in self.records_idx
@@ -80,6 +92,7 @@ class PhaseSet:
         self.records[record.pos] = record
 
     def flip(self):
+        self.origin = abs(self.origin - 1)
         for record in self.records.values():
             record.flip()
 
@@ -95,14 +108,19 @@ class PhaseSet:
                 f_support_count += 1;
             if rec.origin ==1:
                 m_support_count += 1
-        if f_support_count >= m_support_count and f_support_count > 0:
+        t = abs(f_support_count - m_support_count)
+        if f_support_count > m_support_count:
             self.origin = 0
-        if m_support_count > f_support_count and m_support_count > 0:
+        if m_support_count > f_support_count:
             self.origin = 1
-        else:
-            self.origin = 2
-        
+
+        # self.origin = 1
+        # if self.origin == 1:
+        #     self.flip()
+        #
     def finalize_phaseset_label(self):
+        if len(self.records_idx) == 0:
+            return
         self.starting_pos = min(self.records_idx) 
         for record in self.records.values():
             record.ps = self.starting_pos
@@ -148,9 +166,9 @@ class ChromosomoHaplotype:
         idx = 0
         
         for rec in in_vcf.fetch(chromo):
-            het = rec.samples[0].gt_type
-            if het != 1:        # not het loci
-                continue
+            # het = rec.samples[0].gt_type
+            # if het != 1:        # not het loci
+            #     continue
             PS_fix = 0
             if rec.samples[0].phased:
                 fmt = rec.FORMAT.split(':')
@@ -163,8 +181,8 @@ class ChromosomoHaplotype:
                         PS_fix = rec.POS
                 else:
                     PS_fix = 1
-            record = Record()
-            record.copy_from_rec(rec, PS_fix, idx)
+            # record = Record()
+            record=Record(rec, PS_fix, idx)
             idx += 1
             self.chromo_record[record.pos] = record
             if record.ps != 0:
