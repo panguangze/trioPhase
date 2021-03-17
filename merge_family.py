@@ -256,12 +256,14 @@ def main():
     c_vcf = vcf.Reader(filename=args.child)
     if not os.path.exists(args.out):
         os.mkdir(args.out)
-    child_out_vcf = vcf.Writer(open(os.path.join(args.out, 'child.vcf'), 'w'), c_vcf)
-    f_out_vcf = vcf.Writer(open(os.path.join(args.out, 'father.vcf'), 'w'), f_vcf)
-    m_out_vcf = vcf.Writer(open(os.path.join(args.out, 'mother.vcf'), 'w'), m_vcf)
+    c1 = args.child.split("/")[-1]
+    f1 = args.father.split("/")[-1]
+    m1 = args.mother.split("/")[-1]
+    child_out_vcf = vcf.Writer(open(os.path.join(args.out, c1), 'w'), c_vcf)
+    f_out_vcf = vcf.Writer(open(os.path.join(args.out, f1), 'w'), f_vcf)
+    m_out_vcf = vcf.Writer(open(os.path.join(args.out, m1), 'w'), m_vcf)
 
-    # chromos = f_vcf.contigs.keys()
-    chromos = ['chr1']
+    chromos = f_vcf.contigs.keys()
     for chromo in chromos:
         try:
             f_vcf.fetch(chromo)
@@ -277,8 +279,8 @@ def main():
         # merge_chromo_haplotype(c_chromo_info, f_chromo_info)
         # merge_chromo_haplotype(c_chromo_info, m_chromo_info)
         write_chromosome(c_vcf, child_out_vcf, c_chromo_info, str(chromo))
-        write_chromosome(f_vcf, child_out_vcf, f_chromo_info, str(chromo))
-        write_chromosome(m_vcf, child_out_vcf, m_chromo_info, str(chromo))
+        write_chromosome(f_vcf, f_out_vcf, f_chromo_info, str(chromo))
+        write_chromosome(m_vcf, m_out_vcf, m_chromo_info, str(chromo))
 
     child_out_vcf.close()
     f_out_vcf.close()
