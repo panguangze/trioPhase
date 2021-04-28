@@ -21,7 +21,7 @@ class Record:
             self.hap1 = rec.ALT[gt1 - 1]
         self.ps = PS
         self.idx = idx
-        # for child, 0 hap0 from f, 1 hap1 from f
+        # for child, 0 hap0 from f, 1 hap0 from m
         # for parent 0 hap0 give c, 1 hap1 give child
         # -1 unphased, 2 phased but not sure from
         if PS == 0:
@@ -162,14 +162,16 @@ class PhaseSet:
         return need_flip
 
 class ChromosomoHaplotype:
-    def __init__(self, in_vcf: vcf.Reader, chromo: str):
+    def __init__(self, in_vcf: vcf.Reader, chromo: str, skip=False):
         self.chromo_record = dict()
         self.chromo_phase_set = dict()
         self.chromo_record2phaseset_map = dict()
         rec:vcf.model._Record
         ps_label_fix = dict()
         idx = 0
-        
+
+        if skip:
+            return
         for rec in in_vcf.fetch(chromo):
             # het = rec.samples[0].gt_type
             # if het != 1:        # not het loci

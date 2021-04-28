@@ -91,7 +91,7 @@ def merge_unphased_snp(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype,
             m_h = m_rec.is_heterozygous()
             if m_rec.is_heterozygous():
                 continue
-            c_hap_source(c_rec, m_rec, 0)
+            c_hap_source(c_rec, m_rec, 1)
         # if child haplotype can infered from parent
         if c_rec.origin != -1 and not c_rec.phased():
             # we set all rec origin 0, means hap0 from father
@@ -144,13 +144,13 @@ def main():
         except:
             continue
         f_chromo_info = ChromosomoHaplotype(f_vcf, str(chromo))
-        m_chromo_info = ChromosomoHaplotype(m_vcf, str(chromo))
+        m_chromo_info = ChromosomoHaplotype(m_vcf, str(chromo), True)
         c_chromo_info = ChromosomoHaplotype(c_vcf, str(chromo))
 
         child_haplotype(c_chromo_info, f_chromo_info, m_chromo_info)
         write_chromosome(c_vcf, child_out_vcf, c_chromo_info, str(chromo))
         write_chromosome(f_vcf, f_out_vcf, f_chromo_info, str(chromo))
-        write_chromosome(m_vcf, m_out_vcf, m_chromo_info, str(chromo))
+        # write_chromosome(m_vcf, m_out_vcf, m_chromo_info, str(chromo))
 
     child_out_vcf.close()
     f_out_vcf.close()
