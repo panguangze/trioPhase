@@ -2,7 +2,7 @@
 python require, numpy,pysam,pyvcf
 * step 1:
 
-Install spechap
+Install spechap https://github.com/deepomicslab/SpecHap
 * step 2:
 
 python main.py --father_v xx --mother_v xx --child_v xx --father_b xx --mother_b xx --child_b xx
