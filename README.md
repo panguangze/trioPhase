@@ -1,9 +1,9 @@
+## require
+python require, numpy,pysam,pyvcf
+spechap https://github.com/deepomicslab/SpecHap
+tabix and bgzip
 ## Step by Step
 ### Raw phase with only vcf
-python require, numpy,pysam,pyvcf
-* step 1:
-
-Install spechap https://github.com/deepomicslab/SpecHap
 * step 2:(xx.vcf individual phased vcf with spechap)
 
 python merge_family.py -f xx.vcf -m xx.vcf -c xx.vcf -o out_dir
@@ -37,7 +37,8 @@ python merge_family.py -f xx.vcf -m xx.vcf -c xx.vcf -o out_dir
   spechap -f child.sort.lst -v father.vcf.gz -o father.out.vcf --keep_phasing_info
 
 ## One step
-* (install spechap first)
-
 
 python main.py --spechap /home/caronkey/Documents/cityu/triophase/SpecHap/cmake-build-debug/SpecHap --extractHairs /home/caronkey/Documents/cityu/hap/extracthairs/cmake-build-debug/ExtractHAIRs --child_v ~/remote/dong_hpc/data_X101SC19050094-Z01-B10-21/2.cleandata/s0114-1_FDHG190451812-1a/chr1.vcf.gz --child_b ~/remote/dong_hpc/data_X101SC19050094-Z01-B10-21/2.cleandata/s0114-1_FDHG190451812-1a/chr1.bam -o test2 --mother_b ~/remote/dong_hpc/data_X101SC19050094-Z01-B10-21/2.cleandata/s0114-1_FDHG190451812-1a/chr1.bam --mother_v ~/remote/dong_hpc/data_X101SC19050094-Z01-B10-21/2.cleandata/s0114-1_FDHG190451812-1a/chr1.vcf.gz --bgzip bgzip --tabix tabix --father_b ~/remote/dong_hpc/data_X101SC19050094-Z01-B10-21/2.cleandata/s0114-1_FDHG190451812-1a/chr1.bam --father_v ~/remote/dong_hpc/data_X101SC19050094-Z01-B10-21/2.cleandata/s0114-1_FDHG190451812-1a/chr1.vcf.gz
+
+
+final output : *.phased.vcf.gz.final.vcf
