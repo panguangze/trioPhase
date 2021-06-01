@@ -59,6 +59,8 @@ def main():
         '--tabix', help='tabix path', required=True)
     parser.add_argument('-o', '--out_dir', help='Out dir', required=True)
     
+    if not os.path.exists(args.out_dir):
+        os.mkdir(args.out_dir)
     args = parser.parse_args()
     print("individual phase")
     m_phased_v1=""
