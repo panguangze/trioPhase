@@ -1,17 +1,16 @@
 import os
-from subprocess import call
 import argparse
 
 def i_phase(spechap,extract,bam, vcf, out_dir, name):
     lst_out = os.path.join(out_dir, name+".lst")
     lst_sorted_out = os.path.join(out_dir, name+".sorted.lst")
     sort_cmd = "sort -n -k3 {} > {}".format(lst_out,lst_sorted_out)
-    call(sort_cmd, shell=True)
     phased_vcf = os.path.join(out_dir, name+".phased.vcf")
-    e_cmd = "{} --vcf {} --bam {} -o {}".format(extract, vcf, bam, lst_sorted_out)
+    e_cmd = "{} --vcf {} --bam {} -o {}".format(extract, vcf, bam, lst_out)
     s_cmd = "{} -f {} -v {} -o {}".format(spechap, lst_out, vcf, phased_vcf)
-    call(e_cmd, shell=True)
-    call(s_cmd, shell=True)
+    os.system(e_cmd)
+    os.system(sort_cmd)
+    os.system(s_cmd)
     return phased_vcf
 def e_lst(extract, bams, vcf, out_dir):
     lst_a = ""
@@ -22,11 +21,11 @@ def e_lst(extract, bams, vcf, out_dir):
         lst = os.path.join(out_dir, "tmp"+str(i)+".lst")
         e_cmd = "{} --vcf {} --bam {} -o {}".format(extract, vcf, b, lst)
         lst_a = lst_a+" "+lst
-        call(e_cmd, shell=True)
+        os.system(e_cmd)
     cat_cmd = "cat {} > {}".format(lst_a, lst_l)
     sort_cmd = "sort -n -k3 {} > {}".format(lst_l,lst_l_sorted)
-    call(cat_cmd, shell=True)
-    call(sort_cmd, shell=True)
+    os.system(cat_cmd)
+    os.system(sort_cmd)
     return lst_l_sorted
 def main():
     parser = argparse.ArgumentParser("trio phase")
@@ -64,7 +63,7 @@ def main():
         raw_cmd = "python merge_family.py -m {} -c {} -o {}".format(m_phased_v1, c_phased_v1, args.out_dir)
     else:
         raw_cmd = "python merge_family.py -m {} -f {} -c {} -o {}".format(m_phased_v1, f_phased_v1, c_phased_v1, args.out_dir)
-    if call(raw_cmd, shell=True):
+    if os.system(raw_cmd):
         print(raw_cmd,"running error")
         exit
 
