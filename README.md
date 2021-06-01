@@ -9,7 +9,7 @@ extractHairs https://github.com/panguangze/extractHairs
 tabix and bgzip
 ## Step by Step
 ### Raw phase with only vcf
-* step 2:(xx.vcf individual phased vcf with spechap)
+* step 1:(xx.vcf individual phased vcf with spechap)
 
 python merge_family.py -f xx.vcf -m xx.vcf -c xx.vcf -o out_dir
 
