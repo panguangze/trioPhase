@@ -2,7 +2,7 @@
 python require, numpy,pysam,pyvcf
 * step 1:
 
-Install spechap as described in README.md file
+Install spechap
 * step 2:
 
 python main.py --father_v xx --mother_v xx --child_v xx --father_b xx --mother_b xx --child_b xx
