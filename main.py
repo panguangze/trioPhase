@@ -1,7 +1,11 @@
 import os
 import argparse
-
-def i_phase(spechap,extract,bam, vcf, out_dir, name):
+def bgzip_and_index(vcf, bgzip, tabix):
+    bgzip_cmd = "{} {}".format(bgzip, vcf)
+    tabix_cmd = "{} {}".format(tabix, vcf+".gz")
+    os.system(bgzip_cmd)
+    os.system(tabix_cmd)
+def i_phase(spechap,extract,bgzip,tabix,bam, vcf, out_dir, name):
     lst_out = os.path.join(out_dir, name+".lst")
     lst_sorted_out = os.path.join(out_dir, name+".sorted.lst")
     sort_cmd = "sort -n -k3 {} > {}".format(lst_out,lst_sorted_out)
@@ -11,14 +15,15 @@ def i_phase(spechap,extract,bam, vcf, out_dir, name):
     os.system(e_cmd)
     os.system(sort_cmd)
     os.system(s_cmd)
-    return phased_vcf
-def e_lst(extract, bams, vcf, out_dir):
+    bgzip_and_index(phased_vcf,bgzip,tabix)
+    return phased_vcf+".gz"
+def e_lst(extract, bams, vcf, out_dir, name):
     lst_a = ""
-    lst_l = os.path.join(out_dir,"all.lst")
-    lst_l_sorted = os.path.join(out_dir,"all.sorted.lst")
+    lst_l = os.path.join(out_dir,name+".all.lst")
+    lst_l_sorted = os.path.join(out_dir,name+".all.sorted.lst")
     for i in range(len(bams)):
         b = bams[i]
-        lst = os.path.join(out_dir, "tmp"+str(i)+".lst")
+        lst = os.path.join(out_dir, name+".tmp"+str(i)+".lst")
         e_cmd = "{} --vcf {} --bam {} -o {}".format(extract, vcf, b, lst)
         lst_a = lst_a+" "+lst
         os.system(e_cmd)
@@ -27,6 +32,9 @@ def e_lst(extract, bams, vcf, out_dir):
     os.system(cat_cmd)
     os.system(sort_cmd)
     return lst_l_sorted
+def phase_with_lst(spechap, lst, vcf, out_file):
+    s_cmd = "{} -f {} -v {} -o {}".format(spechap, lst, vcf, out_file)
+    os.system(s_cmd)
 def main():
     parser = argparse.ArgumentParser("trio phase")
     parser.add_argument(
@@ -45,15 +53,21 @@ def main():
         '--spechap', help='spechap paht', required=True)
     parser.add_argument(
         '--extractHairs', help='extractHairs path', required=True)
-    parser.add_argument('-o', '--out_dir', help='Out dir', required=True)    
+    parser.add_argument(
+        '--bgzip', help='bgzip path', required=True)
+    parser.add_argument(
+        '--tabix', help='tabix path', required=True)
+    parser.add_argument('-o', '--out_dir', help='Out dir', required=True)
     
     args = parser.parse_args()
     print("individual phase")
-    c_phased_v1 = i_phase(args.spechap, args.extractHairs, args.child_b, args.child_v, args.out_dir, "child")
+    m_phased_v1=""
+    f_phased_v1=""
+    c_phased_v1 = i_phase(args.spechap, args.extractHairs, args.bgzip, args.tabix, args.child_b, args.child_v, args.out_dir, "child")
     if args.mother_v and args.mother_b:
-        m_phased_v1 = i_phase(args.spechap, args.extractHairs, args.mother_b, args.mother_v, args.out_dir, "mother")
+        m_phased_v1 = i_phase(args.spechap, args.extractHairs,args.bgzip, args.tabix, args.mother_b, args.mother_v, args.out_dir, "mother")
     if args.father_v and args.father_b:
-        f_phased_v1 = i_phase(args.spechap, args.extractHairs, args.father_b, args.father_v, args.out_dir, "father")
+        f_phased_v1 = i_phase(args.spechap, args.extractHairs,args.bgzip, args.tabix, args.father_b, args.father_v, args.out_dir, "father")
 
     print("Raw phase with only vcf")
     raw_cmd = ""
@@ -67,5 +81,28 @@ def main():
         print(raw_cmd,"running error")
         exit
 
+    c_phased_v2 = c_phased_v1+".final.vcf"
+    m_phased_v2 = m_phased_v1+".final.vcf"
+    f_phased_v2 = f_phased_v1+".final.vcf"
+
+    print("phasing child ...")
+    bams = []
+    if args.mother_b:
+        bams.append(args.mother_b)
+    if args.father_b:
+        bams.append(args.father_b)
+    c_lst = e_lst(args.extractHairs, bams, c_phased_v1, args.out_dir, "child")
+    phase_with_lst(args.spechap, c_lst, c_phased_v1, c_phased_v2)
+
+    print("phasing parent...")
+    if args.mother_b and args.mother_v:
+        bams = [args.mother_b]
+        m_lst = e_lst(args.extractHairs, bams, m_phased_v1, args.out_dir, "mother")
+        phase_with_lst(args.spechap, m_lst, m_phased_v1, m_phased_v2)
+    if args.father_b and args.father_v:
+        bams = [args.father_b]
+        f_lst = e_lst(args.extractHairs, bams, f_phased_v1, args.out_dir, "father")
+        phase_with_lst(args.spechap, f_lst, f_phased_v1, f_phased_v2)
+    
 if __name__ == "__main__":
     main()
