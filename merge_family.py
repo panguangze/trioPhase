@@ -16,11 +16,16 @@ def merge_set(c_info: ChromosomoHaplotype, c_phase_set, child=True):
                 phase_set.flip()
             c_info.connect_phase_set(c_phase_set, phase_set)
 
-def child_haplotype(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype, m_info: ChromosomoHaplotype):
+
+def child_haplotype(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype = None,
+                    m_info: ChromosomoHaplotype = None):
     c_phase_set, f_phase_set, m_phase_set = merge_unphased_snp(c_info, f_info, m_info)
     merge_set(c_info, c_phase_set)
-    merge_set(f_info, f_phase_set, False)
-    merge_set(m_info, m_phase_set, False)
+    if f_info != None:
+        merge_set(f_info, f_phase_set, False)
+    if m_info != None:
+        merge_set(m_info, m_phase_set, False)
+
 
 # parent hap origin
 def p_hap_source(c_r: Record, p_r: Record):
@@ -28,12 +33,15 @@ def p_hap_source(c_r: Record, p_r: Record):
         p_r.origin = 0
     if c_r.hap0 == p_r.hap1:
         p_r.origin = 1
+
+
 # child hap origin
 def c_hap_source(c_r: Record, p_r: Record, origin):
     if c_r.hap0 == p_r.hap0:
         c_r.origin = origin
     if c_r.hap1 == p_r.hap0:
         c_r.origin = abs(origin - 1)
+
 
 def merge_unphased_snp(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype, m_info: ChromosomoHaplotype):
     # empty set , will filled by unphased snp
@@ -44,11 +52,11 @@ def merge_unphased_snp(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype,
         c_rec = c_info.chromo_record[pos]
         f_rec: Record = None
         m_rec: Record = None
-        if pos in f_info.chromo_record.keys():
+        if f_info != None and pos in f_info.chromo_record.keys():
             f_rec = f_info.chromo_record[pos]
-        if pos in m_info.chromo_record.keys():
+        if m_info != None and pos in m_info.chromo_record.keys():
             m_rec = m_info.chromo_record[pos]
-        
+
         # if child is homozygous try to phase parental.
         if not c_rec.is_heterozygous():
             if f_rec != None and f_rec.is_heterozygous():
@@ -64,7 +72,7 @@ def merge_unphased_snp(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype,
                         m_rec.flip()
                     m_phase_set.insert_record(m_rec)
             continue
-        
+
         # fixme: more flexible logistic
         # if child is heterozygous but parent none
         if f_rec == None and m_rec == None:
@@ -115,46 +123,98 @@ def write_chromosome(in_vcf: vcf.Reader, out_vcf: vcf.Writer, chromo_haplotype: 
             record.finalize_record(rec)
             out_vcf.write_record(rec)
 
+
 def main():
     parser = argparse.ArgumentParser("merge family-based phased vcf")
     parser.add_argument(
-        '-f', '--father', help='Father VCF file(s) in gz format, indexed, seperated by space', required=True)
+        '-f', '--father', help='Father VCF file(s) in gz format, indexed, seperated by space', required=False)
     parser.add_argument(
-        '-m', '--mother', help='Mother VCF file(s) in gz format, indexed, seperated by space', required=True)
+        '-m', '--mother', help='Mother VCF file(s) in gz format, indexed, seperated by space', required=False)
     parser.add_argument(
         '-c', '--child', help='Child VCF file(s) in gz format, indexed, seperated by space', required=True)
     parser.add_argument('-o', '--out', help='Out dir', required=True)
     args = parser.parse_args()
-    f_vcf = vcf.Reader(filename=args.father)
-    m_vcf = vcf.Reader(filename=args.mother)
-    c_vcf = vcf.Reader(filename=args.child)
     if not os.path.exists(args.out):
         os.mkdir(args.out)
-    c1 = args.child.split("/")[-1].replace(".gz","")
-    f1 = args.father.split("/")[-1].replace(".gz","")
-    m1 = args.mother.split("/")[-1].replace(".gz","")
-    child_out_vcf = vcf.Writer(open(os.path.join(args.out, c1), 'w'), c_vcf)
-    f_out_vcf = vcf.Writer(open(os.path.join(args.out, f1), 'w'), f_vcf)
-    m_out_vcf = vcf.Writer(open(os.path.join(args.out, m1), 'w'), m_vcf)
+    if not args.father and not args.mother:
+        print("error: At least one parent is present")
+        exit(1)
+    if not args.father:
+        m_vcf = vcf.Reader(filename=args.mother)
+        c_vcf = vcf.Reader(filename=args.child)
+        c1 = args.child.split("/")[-1].replace("2.gz", "")
+        m1 = args.mother.split("/")[-1].replace("2.gz", "")
+        child_out_vcf = vcf.Writer(open(os.path.join(args.out, c1), 'w'), c_vcf)
+        m_out_vcf = vcf.Writer(open(os.path.join(args.out, m1), 'w'), m_vcf)
+        chromos = m_vcf.contigs.keys()
+        for chromo in chromos:
+            try:
+                m_vcf.fetch(chromo)
+            except:
+                continue
+            m_chromo_info = ChromosomoHaplotype(m_vcf, str(chromo))
+            c_chromo_info = ChromosomoHaplotype(c_vcf, str(chromo))
 
-    chromos = f_vcf.contigs.keys()
-    for chromo in chromos:
-        try:
-            f_vcf.fetch(chromo)
-        except:
-            continue
-        f_chromo_info = ChromosomoHaplotype(f_vcf, str(chromo))
-        m_chromo_info = ChromosomoHaplotype(m_vcf, str(chromo), True)
-        c_chromo_info = ChromosomoHaplotype(c_vcf, str(chromo))
+            child_haplotype(c_chromo_info, m_chromo_info)
+            write_chromosome(c_vcf, child_out_vcf, c_chromo_info, str(chromo))
+            write_chromosome(m_vcf, m_out_vcf, m_chromo_info, str(chromo))
 
-        child_haplotype(c_chromo_info, f_chromo_info, m_chromo_info)
-        write_chromosome(c_vcf, child_out_vcf, c_chromo_info, str(chromo))
-        write_chromosome(f_vcf, f_out_vcf, f_chromo_info, str(chromo))
-        # write_chromosome(m_vcf, m_out_vcf, m_chromo_info, str(chromo))
+        child_out_vcf.close()
+        m_out_vcf.close()
+        return
+    if not args.mother:
+        f_vcf = vcf.Reader(filename=args.father)
+        c_vcf = vcf.Reader(filename=args.child)
+        c1 = args.child.split("/")[-1].replace("2.gz", "")
+        f1 = args.father.split("/")[-1].replace("2.gz", "")
+        child_out_vcf = vcf.Writer(open(os.path.join(args.out, c1), 'w'), c_vcf)
+        f_out_vcf = vcf.Writer(open(os.path.join(args.out, f1), 'w'), f_vcf)
+        chromos = f_vcf.contigs.keys()
+        for chromo in chromos:
+            try:
+                f_vcf.fetch(chromo)
+            except:
+                continue
+            f_chromo_info = ChromosomoHaplotype(f_vcf, str(chromo))
+            c_chromo_info = ChromosomoHaplotype(c_vcf, str(chromo))
 
-    child_out_vcf.close()
-    f_out_vcf.close()
-    m_out_vcf.close()
+            child_haplotype(c_chromo_info, f_chromo_info)
+            write_chromosome(c_vcf, child_out_vcf, c_chromo_info, str(chromo))
+            write_chromosome(f_vcf, f_out_vcf, f_chromo_info, str(chromo))
+
+        child_out_vcf.close()
+        f_out_vcf.close()
+        return
+    else:
+        f_vcf = vcf.Reader(filename=args.father)
+        m_vcf = vcf.Reader(filename=args.mother)
+        c_vcf = vcf.Reader(filename=args.child)
+
+        c1 = args.child.split("/")[-1].replace("2.gz", "")
+        f1 = args.father.split("/")[-1].replace("2.gz", "")
+        m1 = args.mother.split("/")[-1].replace("2.gz", "")
+        child_out_vcf = vcf.Writer(open(os.path.join(args.out, c1), 'w'), c_vcf)
+        f_out_vcf = vcf.Writer(open(os.path.join(args.out, f1), 'w'), f_vcf)
+        m_out_vcf = vcf.Writer(open(os.path.join(args.out, m1), 'w'), m_vcf)
+
+        chromos = f_vcf.contigs.keys()
+        for chromo in chromos:
+            try:
+                f_vcf.fetch(chromo)
+            except:
+                continue
+            f_chromo_info = ChromosomoHaplotype(f_vcf, str(chromo))
+            m_chromo_info = ChromosomoHaplotype(m_vcf, str(chromo))
+            c_chromo_info = ChromosomoHaplotype(c_vcf, str(chromo))
+
+            child_haplotype(c_chromo_info, f_chromo_info, m_chromo_info)
+            write_chromosome(c_vcf, child_out_vcf, c_chromo_info, str(chromo))
+            write_chromosome(f_vcf, f_out_vcf, f_chromo_info, str(chromo))
+            write_chromosome(m_vcf, m_out_vcf, m_chromo_info, str(chromo))
+
+        child_out_vcf.close()
+        f_out_vcf.close()
+        m_out_vcf.close()
 
 
 if __name__ == "__main__":
