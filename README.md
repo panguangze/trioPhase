@@ -1,6 +1,11 @@
 ## require
 python require, numpy,pysam,pyvcf
+
 spechap https://github.com/deepomicslab/SpecHap
+
+extractHairs https://github.com/panguangze/extractHairs
+
+
 tabix and bgzip
 ## Step by Step
 ### Raw phase with only vcf
