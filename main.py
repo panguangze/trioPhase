@@ -112,11 +112,11 @@ def main():
     print("Phase with only vcf")
     raw_cmd = ""
     if not args.mother_v:
-        raw_cmd = "python merge_family.py -f {} -c {} -o {}".format(f_phased_v2, c_phased_v2, args.out_dir)
+        raw_cmd = "python merge_family.py -f {} -c {} -o {}".format(f_phased_v2+".gz", c_phased_v2, args.out_dir)
     if not args.father_v:
-        raw_cmd = "python merge_family.py -m {} -c {} -o {}".format(m_phased_v2, c_phased_v2, args.out_dir)
+        raw_cmd = "python merge_family.py -m {} -c {} -o {}".format(m_phased_v2+".gz", c_phased_v2, args.out_dir)
     else:
-        raw_cmd = "python merge_family.py -m {} -f {} -c {} -o {}".format(m_phased_v2, f_phased_v2, c_phased_v2, args.out_dir)
+        raw_cmd = "python merge_family.py -m {} -f {} -c {} -o {}".format(m_phased_v2+".gz", f_phased_v2, c_phased_v2, args.out_dir)
     if os.system(raw_cmd):
         print(raw_cmd,"running error")
         exit
