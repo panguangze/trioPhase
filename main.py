@@ -35,7 +35,7 @@ def e_lst(extract, bams, vcf, out_dir, name):
     return lst_l_sorted
 def phase_with_lst(spechap, lst, vcf, out_file, bgzip, tabix):
     bgzip_and_index(vcf,bgzip,tabix)
-    s_cmd = "{} -f {} -v {} -o {}".format(spechap, lst, vcf+".gz", out_file)
+    s_cmd = "{} -f {} -v {} -o {} --keep_phasing_info".format(spechap, lst, vcf+".gz", out_file)
     os.system(s_cmd)
     bgzip_and_index(out_file,bgzip,tabix)
     return out_file+".gz"
@@ -54,7 +54,7 @@ def main():
     parser.add_argument(
         '--child_b', help='Child bam file indexed', required=True)
     parser.add_argument(
-        '--spechap', help='spechap paht', required=True)
+        '--spechap', help='spechap path', required=True)
     parser.add_argument(
         '--extractHairs', help='extractHairs path', required=True)
     parser.add_argument(

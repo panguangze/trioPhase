@@ -190,9 +190,9 @@ def main():
         m_vcf = vcf.Reader(filename=args.mother)
         c_vcf = vcf.Reader(filename=args.child)
 
-        c1 = args.child.split("/")[-1].replace(".gz", "")
-        f1 = args.father.split("/")[-1].replace(".gz", "")
-        m1 = args.mother.split("/")[-1].replace(".gz", "")
+        c1 = args.child.split("/")[-1].replace(".gz", ".final")
+        f1 = args.father.split("/")[-1].replace(".gz", ".final")
+        m1 = args.mother.split("/")[-1].replace(".gz", ".final")
         child_out_vcf = vcf.Writer(open(os.path.join(args.out, c1), 'w'), c_vcf)
         f_out_vcf = vcf.Writer(open(os.path.join(args.out, f1), 'w'), f_vcf)
         m_out_vcf = vcf.Writer(open(os.path.join(args.out, m1), 'w'), m_vcf)
