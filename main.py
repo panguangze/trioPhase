@@ -15,8 +15,8 @@ def i_phase(spechap,extract,bgzip,tabix,bam, vcf, out_dir, name):
     os.system(e_cmd)
     os.system(sort_cmd)
     os.system(s_cmd)
-    bgzip_and_index(phased_vcf,bgzip,tabix)
-    return phased_vcf+".gz"
+    # bgzip_and_index(phased_vcf,bgzip,tabix)
+    return phased_vcf
 def e_lst(extract, bams, vcf, out_dir, name):
     lst_a = ""
     lst_l = os.path.join(out_dir,name+".all.lst")
@@ -35,6 +35,7 @@ def e_lst(extract, bams, vcf, out_dir, name):
 def phase_with_lst(spechap, lst, vcf, out_file):
     s_cmd = "{} -f {} -v {} -o {}".format(spechap, lst, vcf, out_file)
     os.system(s_cmd)
+    return out_file
 def main():
     parser = argparse.ArgumentParser("trio phase")
     parser.add_argument(
@@ -71,21 +72,22 @@ def main():
     if args.father_v and args.father_b:
         f_phased_v1 = i_phase(args.spechap, args.extractHairs,args.bgzip, args.tabix, args.father_b, args.father_v, args.out_dir, "father")
 
-    print("Raw phase with only vcf")
-    raw_cmd = ""
-    if not args.mother_v:
-        raw_cmd = "python merge_family.py -f {} -c {} -o {}".format(f_phased_v1, c_phased_v1, args.out_dir)
-    if not args.father_v:
-        raw_cmd = "python merge_family.py -m {} -c {} -o {}".format(m_phased_v1, c_phased_v1, args.out_dir)
-    else:
-        raw_cmd = "python merge_family.py -m {} -f {} -c {} -o {}".format(m_phased_v1, f_phased_v1, c_phased_v1, args.out_dir)
-    if os.system(raw_cmd):
-        print(raw_cmd,"running error")
-        exit
+    # print("Raw phase with only vcf")
+    # raw_cmd = ""
+    # if not args.mother_v:
+    #     raw_cmd = "python merge_family.py -f {} -c {} -o {}".format(f_phased_v1, c_phased_v1, args.out_dir)
+    # if not args.father_v:
+    #     raw_cmd = "python merge_family.py -m {} -c {} -o {}".format(m_phased_v1, c_phased_v1, args.out_dir)
+    # else:
+    #     raw_cmd = "python merge_family.py -m {} -f {} -c {} -o {}".format(m_phased_v1, f_phased_v1, c_phased_v1, args.out_dir)
+    # if os.system(raw_cmd):
+    #     print(raw_cmd,"running error")
+    #     exit
 
-    c_phased_v2 = c_phased_v1+".final.vcf"
-    m_phased_v2 = m_phased_v1+".final.vcf"
-    f_phased_v2 = f_phased_v1+".final.vcf"
+
+    c_phased_v2 = c_phased_v1+".trio.vcf"
+    m_phased_v2 = m_phased_v1+".trio.vcf"
+    f_phased_v2 = f_phased_v1+".trio.vcf"
 
     print("phasing child ...")
     bams = []
@@ -98,13 +100,25 @@ def main():
 
     print("phasing parent...")
     if args.mother_b and args.mother_v:
-        bams = [args.mother_b]
+        bams = [args.child_b]
         m_lst = e_lst(args.extractHairs, bams, m_phased_v1, args.out_dir, "mother")
         phase_with_lst(args.spechap, m_lst, m_phased_v1, m_phased_v2)
     if args.father_b and args.father_v:
-        bams = [args.father_b]
+        bams = [args.child_b]
         f_lst = e_lst(args.extractHairs, bams, f_phased_v1, args.out_dir, "father")
         phase_with_lst(args.spechap, f_lst, f_phased_v1, f_phased_v2)
     
+    print("Phase with only vcf")
+    raw_cmd = ""
+    if not args.mother_v:
+        raw_cmd = "python merge_family.py -f {} -c {} -o {}".format(f_phased_v2, c_phased_v2, args.out_dir)
+    if not args.father_v:
+        raw_cmd = "python merge_family.py -m {} -c {} -o {}".format(m_phased_v2, c_phased_v2, args.out_dir)
+    else:
+        raw_cmd = "python merge_family.py -m {} -f {} -c {} -o {}".format(m_phased_v2, f_phased_v2, c_phased_v2, args.out_dir)
+    if os.system(raw_cmd):
+        print(raw_cmd,"running error")
+        exit
+
 if __name__ == "__main__":
     main()
