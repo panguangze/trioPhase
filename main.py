@@ -15,7 +15,6 @@ def i_phase(spechap,extract,bgzip,tabix,bam, vcf, out_dir, name):
     os.system(e_cmd)
     os.system(sort_cmd)
     os.system(s_cmd)
-    # bgzip_and_index(phased_vcf,bgzip,tabix)
     return phased_vcf
 def e_lst(extract, bams, vcf, out_dir, name):
     lst_a = ""
@@ -32,10 +31,11 @@ def e_lst(extract, bams, vcf, out_dir, name):
     os.system(cat_cmd)
     os.system(sort_cmd)
     return lst_l_sorted
-def phase_with_lst(spechap, lst, vcf, out_file):
+def phase_with_lst(spechap, lst, vcf, out_file, bgzip, tabix):
     s_cmd = "{} -f {} -v {} -o {}".format(spechap, lst, vcf, out_file)
     os.system(s_cmd)
-    return out_file
+    bgzip_and_index(out_file,bgzip,tabix)
+    return out_file+".gz"
 def main():
     parser = argparse.ArgumentParser("trio phase")
     parser.add_argument(
@@ -96,17 +96,17 @@ def main():
     if args.father_b:
         bams.append(args.father_b)
     c_lst = e_lst(args.extractHairs, bams, c_phased_v1, args.out_dir, "child")
-    phase_with_lst(args.spechap, c_lst, c_phased_v1, c_phased_v2)
+    phase_with_lst(args.spechap, c_lst, c_phased_v1, c_phased_v2, args.bgzip, args.tabix)
 
     print("phasing parent...")
     if args.mother_b and args.mother_v:
         bams = [args.child_b]
         m_lst = e_lst(args.extractHairs, bams, m_phased_v1, args.out_dir, "mother")
-        phase_with_lst(args.spechap, m_lst, m_phased_v1, m_phased_v2)
+        phase_with_lst(args.spechap, m_lst, m_phased_v1, m_phased_v2, args.bgzip, args.tabix)
     if args.father_b and args.father_v:
         bams = [args.child_b]
         f_lst = e_lst(args.extractHairs, bams, f_phased_v1, args.out_dir, "father")
-        phase_with_lst(args.spechap, f_lst, f_phased_v1, f_phased_v2)
+        phase_with_lst(args.spechap, f_lst, f_phased_v1, f_phased_v2, args.bgzip, args.tabix)
     
     print("Phase with only vcf")
     raw_cmd = ""
