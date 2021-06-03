@@ -32,7 +32,8 @@ def e_lst(extract, bams, vcf, out_dir, name):
     os.system(sort_cmd)
     return lst_l_sorted
 def phase_with_lst(spechap, lst, vcf, out_file, bgzip, tabix):
-    s_cmd = "{} -f {} -v {} -o {}".format(spechap, lst, vcf, out_file)
+    bgzip_and_index(vcf,bgzip,tabix)
+    s_cmd = "{} -f {} -v {} -o {}".format(spechap, lst, vcf+".gz", out_file)
     os.system(s_cmd)
     bgzip_and_index(out_file,bgzip,tabix)
     return out_file+".gz"
