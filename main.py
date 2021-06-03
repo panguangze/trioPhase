@@ -28,6 +28,8 @@ def e_lst(extract, bams, vcf, out_dir, name):
         os.system(e_cmd)
     cat_cmd = "cat {} > {}".format(lst_a, lst_l)
     sort_cmd = "sort -n -k3 {} > {}".format(lst_l,lst_l_sorted)
+    print(cat_cmd)
+    print(sort_cmd)
     os.system(cat_cmd)
     os.system(sort_cmd)
     return lst_l_sorted
@@ -112,11 +114,11 @@ def main():
     print("Phase with only vcf")
     raw_cmd = ""
     if not args.mother_v:
-        raw_cmd = "python merge_family.py -f {} -c {} -o {}".format(f_phased_v2+".gz", c_phased_v2, args.out_dir)
+        raw_cmd = "python merge_family.py -f {} -c {} -o {}".format(f_phased_v2+".gz", c_phased_v2+".gz", args.out_dir)
     if not args.father_v:
-        raw_cmd = "python merge_family.py -m {} -c {} -o {}".format(m_phased_v2+".gz", c_phased_v2, args.out_dir)
+        raw_cmd = "python merge_family.py -m {} -c {} -o {}".format(m_phased_v2+".gz", c_phased_v2+".gz", args.out_dir)
     else:
-        raw_cmd = "python merge_family.py -m {} -f {} -c {} -o {}".format(m_phased_v2+".gz", f_phased_v2, c_phased_v2, args.out_dir)
+        raw_cmd = "python merge_family.py -m {} -f {} -c {} -o {}".format(m_phased_v2+".gz", f_phased_v2+".gz", c_phased_v2+".gz", args.out_dir)
     if os.system(raw_cmd):
         print(raw_cmd,"running error")
         exit
