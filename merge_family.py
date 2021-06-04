@@ -8,6 +8,8 @@ import os
 def merge_set(c_info: ChromosomoHaplotype, c_phase_set, child=True):
     phase_set_keys = list(c_info.chromo_phase_set.keys())
     for phase_set_key in phase_set_keys:
+        if phase_set_key == 180910:
+            print("xx")
         phase_set = c_info.chromo_phase_set[phase_set_key]
         if phase_set.origin == 2:
             phase_set.build_origin(child)
@@ -21,10 +23,13 @@ def child_haplotype(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype = N
                     m_info: ChromosomoHaplotype = None):
     c_phase_set, f_phase_set, m_phase_set = merge_unphased_snp(c_info, f_info, m_info)
     merge_set(c_info, c_phase_set)
+    c_phase_set.finalize_phaseset_label()
     if f_info != None:
         merge_set(f_info, f_phase_set, False)
+        f_phase_set.finalize_phaseset_label()
     if m_info != None:
         merge_set(m_info, m_phase_set, False)
+        f_phase_set.finalize_phaseset_label()
 
 
 # parent hap origin
@@ -56,7 +61,8 @@ def merge_unphased_snp(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype,
             f_rec = f_info.chromo_record[pos]
         if m_info != None and pos in m_info.chromo_record.keys():
             m_rec = m_info.chromo_record[pos]
-
+        if pos =='181113' or pos ==181113:
+            print("xxx")
         # if child is homozygous try to phase parental.
         if not c_rec.is_heterozygous():
             if f_rec != None and f_rec.is_heterozygous():
@@ -91,11 +97,11 @@ def merge_unphased_snp(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype,
                 c_hap_source(c_rec, f_rec, 0)
             if not m_h:
                 c_hap_source(c_rec, m_rec, 1)
-        elif f_rec:
+        elif f_rec !=None:
             if f_rec.is_heterozygous():
                 continue
             c_hap_source(c_rec, f_rec, 0)
-        elif m_rec:
+        elif m_rec != None:
             m_h = m_rec.is_heterozygous()
             if m_rec.is_heterozygous():
                 continue
@@ -106,6 +112,9 @@ def merge_unphased_snp(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype,
             if c_rec.origin == 1:
                 c_rec.flip()
             c_phase_set.insert_record(c_rec)
+        # if c_rec.origin != -1 and c_rec.phased():
+        #     if c_rec.origin == 1:
+        #         c_rec.flip()
     c_phase_set.finalize_phaseset_label()
     f_phase_set.finalize_phaseset_label()
     m_phase_set.finalize_phaseset_label()
