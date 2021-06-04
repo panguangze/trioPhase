@@ -5,6 +5,7 @@ def bgzip_and_index(vcf, bgzip, tabix):
     tabix_cmd = "{} {}".format(tabix, vcf+".gz")
     os.system(bgzip_cmd)
     os.system(tabix_cmd)
+    return vcf+".gz"
 def bgunzip(vcf):
     unzip_cmd = "gunzip {}".format(vcf)
     os.system(unzip_cmd)
@@ -16,10 +17,10 @@ def i_phase(spechap,extract,bgzip,tabix,bam, vcf, out_dir, name):
     phased_vcf = os.path.join(out_dir, name+".phased.vcf")
     sort_cmd = "sort -n -k3 {} > {}".format(lst_out,lst_sorted_out)
     e_cmd = "{} --vcf {} --bam {} -o {}".format(extract, vcf, bam, lst_out)
-    s_cmd = "{} -f {} -v {} -o {}".format(spechap, lst_sorted_out, vcf, phased_vcf)
     os.system(e_cmd)
     os.system(sort_cmd)
-    bgzip_and_index(vcf)
+    vcf = bgzip_and_index(vcf, bgzip, tabix)
+    s_cmd = "{} -f {} -v {} -o {}".format(spechap, lst_sorted_out, vcf, phased_vcf)
     os.system(s_cmd)
     return phased_vcf
 def e_lst(extract, bams, vcf, out_dir, name):
@@ -40,8 +41,8 @@ def e_lst(extract, bams, vcf, out_dir, name):
     os.system(sort_cmd)
     return lst_l_sorted
 def phase_with_lst(spechap, lst, vcf, out_file, bgzip, tabix):
-    bgzip_and_index(vcf,bgzip,tabix)
-    s_cmd = "{} -f {} -v {} -o {} --keep_phasing_info".format(spechap, lst, vcf+".gz", out_file)
+    vcf = bgzip_and_index(vcf,bgzip,tabix)
+    s_cmd = "{} -f {} -v {} -o {} --keep_phasing_info".format(spechap, lst, vcf, out_file)
     os.system(s_cmd)
     bgzip_and_index(out_file,bgzip,tabix)
     return out_file+".gz"
