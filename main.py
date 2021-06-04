@@ -19,6 +19,7 @@ def i_phase(spechap,extract,bgzip,tabix,bam, vcf, out_dir, name):
     s_cmd = "{} -f {} -v {} -o {}".format(spechap, lst_sorted_out, vcf, phased_vcf)
     os.system(e_cmd)
     os.system(sort_cmd)
+    bgzip_and_index(vcf)
     os.system(s_cmd)
     return phased_vcf
 def e_lst(extract, bams, vcf, out_dir, name):
