@@ -3,7 +3,6 @@ python require, numpy,pysam,pyvcf
 
 spechap https://github.com/deepomicslab/SpecHap
 
-extractHairs https://github.com/panguangze/extractHairs
 
 
 tabix and bgzip
