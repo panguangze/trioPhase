@@ -3,13 +3,11 @@ import vcf
 from record import Record, PhaseSet, ChromosomoHaplotype
 import sys
 import os
-
+import copy
 
 def merge_set(c_info: ChromosomoHaplotype, c_phase_set, child=True):
     phase_set_keys = list(c_info.chromo_phase_set.keys())
     for phase_set_key in phase_set_keys:
-        if phase_set_key == 180910:
-            print("xx")
         phase_set = c_info.chromo_phase_set[phase_set_key]
         if phase_set.origin == 2:
             phase_set.build_origin(child)
@@ -31,6 +29,24 @@ def child_haplotype(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype = N
         merge_set(m_info, m_phase_set, False)
         f_phase_set.finalize_phaseset_label()
 
+def trio_heter_source(c_r: Record, f_r: Record, m_r: Record):
+    a = [f_r.hap0, f_r.hap1, m_r.hap0, m_r.hap1]
+    if a.count(c_r.hap0) == 2 and a.count(c_r.hap1) == 2:
+        return False
+    elif a.count(c_r.hap0) == 1:
+        if a.index(c_r.hap0) == 0 or a.index(c_r.hap0) == 1:
+            c_r.origin = 0
+        elif a.index(c_r.hap0) == 2 or a.index(c_r.hap0) == 3:
+            c_r.origin = 1
+        return True
+    elif a.count(c_r.hap1) ==1:
+        if a.index(c_r.hap1) == 0 or a.index(c_r.hap1) == 1:
+            c_r.origin = 1
+        elif a.index(c_r.hap1) == 2 or a.index(c_r.hap1) == 3:
+            c_r.origin = 0
+        return True
+    return False
+
 
 # parent hap origin
 def p_hap_source(c_r: Record, p_r: Record):
@@ -47,7 +63,30 @@ def c_hap_source(c_r: Record, p_r: Record, origin):
     if c_r.hap1 == p_r.hap0:
         c_r.origin = abs(origin - 1)
 
+def hete_to_ref_hom(rec:Record):
+    res = copy.deepcopy(rec)
+    res.hap0 = res.ref
+    res.hap1 = res.ref
+    res.origin = -1
+    return res
 
+def phase_with_large_seg(c_rec, p_rec, c_info: ChromosomoHaplotype, p_info:ChromosomoHaplotype):
+    # c_phase_set = c_info.chromo_phase_set[c_rec.ps]
+    p_phase_set = p_info.chromo_phase_set[p_rec.ps]
+    poses = list(p_phase_set.keys())
+    idx = poses.index(p_rec.pos)
+    n = 0;
+    p_hap0 = ''
+    c_hap0 = ''
+    # for i in poses[idx:min(idx+10, len(poses))]:
+    #     if i in c_info.chromo_record.keys() and c_info.chromo_record[i].phased():
+    #         p_tmp = c_info.chromo_record[i]
+    #         p_hap0= p_hap0+p_tmp.hap0
+
+    for i in poses[max(idx - 10, 0), min(idx+10, len(poses))]:
+        
+
+        
 def merge_unphased_snp(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype, m_info: ChromosomoHaplotype):
     # empty set , will filled by unphased snp
     c_phase_set = PhaseSet(1, 0)
@@ -59,9 +98,13 @@ def merge_unphased_snp(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype,
         m_rec: Record = None
         if f_info != None and pos in f_info.chromo_record.keys():
             f_rec = f_info.chromo_record[pos]
+        else:
+            f_rec = hete_to_ref_hom(c_rec)
         if m_info != None and pos in m_info.chromo_record.keys():
             m_rec = m_info.chromo_record[pos]
-        if pos =='181113' or pos ==181113:
+        else:
+            m_rec = hete_to_ref_hom(c_rec)
+        if pos =='242212124' or pos ==242212124:
             print("xxx")
         # if child is homozygous try to phase parental.
         if not c_rec.is_heterozygous():
@@ -69,13 +112,13 @@ def merge_unphased_snp(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype,
                 p_hap_source(c_rec, f_rec)
                 if f_rec.origin != -1 and not f_rec.phased():
                     if f_rec.origin == 1:
-                        f_rec.flip()
+                        f_rec.flip_num = 1
                     f_phase_set.insert_record(f_rec)
             if m_rec != None and m_rec.is_heterozygous():
                 p_hap_source(c_rec, m_rec)
                 if m_rec.origin != -1 and not m_rec.phased():
                     if m_rec.origin == 1:
-                        m_rec.flip()
+                        m_rec.flip_num = 1
                     m_phase_set.insert_record(m_rec)
             continue
 
@@ -89,28 +132,25 @@ def merge_unphased_snp(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype,
             m_h = m_rec.is_heterozygous()
             # f and m both heter
             if f_h and m_h:
-                continue
+                trio_heter_source(c_rec,f_rec,m_rec)
             # f and m both home
             if not f_h and not m_h and f_rec.hap0 == m_rec.hap0:
-                continue
-            if not f_h:
+                pass
+            elif not f_h:
                 c_hap_source(c_rec, f_rec, 0)
-            if not m_h:
+            elif not m_h:
                 c_hap_source(c_rec, m_rec, 1)
         elif f_rec !=None:
-            if f_rec.is_heterozygous():
-                continue
-            c_hap_source(c_rec, f_rec, 0)
+            if not f_rec.is_heterozygous():
+                c_hap_source(c_rec, f_rec, 0)
         elif m_rec != None:
-            m_h = m_rec.is_heterozygous()
-            if m_rec.is_heterozygous():
-                continue
-            c_hap_source(c_rec, m_rec, 1)
+            if not m_rec.is_heterozygous():
+                c_hap_source(c_rec, m_rec, 1)
         # if child haplotype can infered from parent
         if c_rec.origin != -1 and not c_rec.phased():
             # we set all rec origin 0, means hap0 from father
             if c_rec.origin == 1:
-                c_rec.flip()
+                c_rec.flip_num = 1
             c_phase_set.insert_record(c_rec)
         # if c_rec.origin != -1 and c_rec.phased():
         #     if c_rec.origin == 1:
