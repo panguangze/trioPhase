@@ -16,6 +16,12 @@ def bgunzip(vcf):
         return vcf.replace(".gz","")
     else:
         return vcf
+def sc_file(d,df):
+    # f_name = f.split("/")[-1]
+    ds = os.path.join(d, df)
+    # mv_cmd = "mv {} {}".format(f,ds)
+    # execute_cmd(mv_cmd)
+    return ds
 def i_phase(spechap,extract,bgzip,tabix,bam, vcf, out_dir, name):
     vcf = bgunzip(vcf)
     lst_out = os.path.join(out_dir, name+".lst")
@@ -41,8 +47,6 @@ def e_lst(extract, bams, vcf, out_dir, name):
         execute_cmd(e_cmd)
     cat_cmd = "cat {} > {}".format(lst_a, lst_l)
     sort_cmd = "sort -n -k3 {} > {}".format(lst_l,lst_l_sorted)
-    print(cat_cmd)
-    print(sort_cmd)
     execute_cmd(cat_cmd)
     execute_cmd(sort_cmd)
     return lst_l_sorted
@@ -86,6 +90,9 @@ def main():
         m_phased_v1= bgunzip(args.mother_v)
         f_phased_v1= bgunzip(args.father_v)
         c_phased_v1= bgunzip(args.child_v)
+        c_phased_v2 = sc_file(args.out_dir,"child.vcf")
+        m_phased_v2 = sc_file(args.out_dir,"mother.vcf")
+        f_phased_v2 = sc_file(args.out_dir,"father.vcf")
     else:
         print("individual phase")
         m_phased_v1=""
@@ -95,7 +102,9 @@ def main():
             m_phased_v1 = i_phase(args.spechap, args.extractHairs,args.bgzip, args.tabix, args.mother_b, args.mother_v, args.out_dir, "mother")
         if args.father_v and args.father_b:
             f_phased_v1 = i_phase(args.spechap, args.extractHairs,args.bgzip, args.tabix, args.father_b, args.father_v, args.out_dir, "father")
-
+        c_phased_v2 = c_phased_v1+".trio.vcf"
+        m_phased_v2 = m_phased_v1+".trio.vcf"
+        f_phased_v2 = f_phased_v1+".trio.vcf"
     # print("Raw phase with only vcf")
     # raw_cmd = ""
     # if not args.mother_v:
@@ -108,10 +117,6 @@ def main():
     #     print(raw_cmd,"running error")
     #     exit
 
-    
-    c_phased_v2 = c_phased_v1+".trio.vcf"
-    m_phased_v2 = m_phased_v1+".trio.vcf"
-    f_phased_v2 = f_phased_v1+".trio.vcf"
 
     print("phasing child ...")
     bams = []

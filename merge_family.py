@@ -70,20 +70,20 @@ def hete_to_ref_hom(rec:Record):
     res.origin = -1
     return res
 
-def phase_with_large_seg(c_rec, p_rec, c_info: ChromosomoHaplotype, p_info:ChromosomoHaplotype):
-    # c_phase_set = c_info.chromo_phase_set[c_rec.ps]
-    p_phase_set = p_info.chromo_phase_set[p_rec.ps]
-    poses = list(p_phase_set.keys())
-    idx = poses.index(p_rec.pos)
-    n = 0;
-    p_hap0 = ''
-    c_hap0 = ''
-    # for i in poses[idx:min(idx+10, len(poses))]:
-    #     if i in c_info.chromo_record.keys() and c_info.chromo_record[i].phased():
-    #         p_tmp = c_info.chromo_record[i]
-    #         p_hap0= p_hap0+p_tmp.hap0
+# def phase_with_large_seg(c_rec, p_rec, c_info: ChromosomoHaplotype, p_info:ChromosomoHaplotype):
+#     # c_phase_set = c_info.chromo_phase_set[c_rec.ps]
+#     p_phase_set = p_info.chromo_phase_set[p_rec.ps]
+#     poses = list(p_phase_set.keys())
+#     idx = poses.index(p_rec.pos)
+#     n = 0;
+#     p_hap0 = ''
+#     c_hap0 = ''
+#     # for i in poses[idx:min(idx+10, len(poses))]:
+#     #     if i in c_info.chromo_record.keys() and c_info.chromo_record[i].phased():
+#     #         p_tmp = c_info.chromo_record[i]
+#     #         p_hap0= p_hap0+p_tmp.hap0
 
-    for i in poses[max(idx - 10, 0), min(idx+10, len(poses))]:
+#     for i in poses[max(idx - 10, 0), min(idx+10, len(poses))]:
         
 
         
