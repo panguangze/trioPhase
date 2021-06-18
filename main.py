@@ -10,9 +10,12 @@ def bgzip_and_index(vcf, bgzip, tabix):
     execute_cmd(tabix_cmd)
     return vcf+".gz"
 def bgunzip(vcf):
-    unzip_cmd = "gunzip {}".format(vcf)
-    execute_cmd(unzip_cmd)
-    return vcf.replace(".gz","")
+    if "gz" in vcf:
+        unzip_cmd = "gunzip {}".format(vcf)
+        execute_cmd(unzip_cmd)
+        return vcf.replace(".gz","")
+    else:
+        return vcf
 def i_phase(spechap,extract,bgzip,tabix,bam, vcf, out_dir, name):
     vcf = bgunzip(vcf)
     lst_out = os.path.join(out_dir, name+".lst")
@@ -72,18 +75,26 @@ def main():
     parser.add_argument(
         '--tabix', help='tabix path', required=True)
     parser.add_argument('-o', '--out_dir', help='Out dir', required=True)
+    parser.add_argument(
+        '--step', help='which step', required=False)
     args = parser.parse_args()
 
     if not os.path.exists(args.out_dir):
         os.mkdir(args.out_dir)
-    print("individual phase")
-    m_phased_v1=""
-    f_phased_v1=""
-    c_phased_v1 = i_phase(args.spechap, args.extractHairs, args.bgzip, args.tabix, args.child_b, args.child_v, args.out_dir, "child")
-    if args.mother_v and args.mother_b:
-        m_phased_v1 = i_phase(args.spechap, args.extractHairs,args.bgzip, args.tabix, args.mother_b, args.mother_v, args.out_dir, "mother")
-    if args.father_v and args.father_b:
-        f_phased_v1 = i_phase(args.spechap, args.extractHairs,args.bgzip, args.tabix, args.father_b, args.father_v, args.out_dir, "father")
+    if args.step == "2":
+        print("skip individual phase")
+        m_phased_v1= bgunzip(args.mother_v)
+        f_phased_v1= bgunzip(args.father_v)
+        c_phased_v1= bgunzip(args.child_v)
+    else:
+        print("individual phase")
+        m_phased_v1=""
+        f_phased_v1=""
+        c_phased_v1 = i_phase(args.spechap, args.extractHairs, args.bgzip, args.tabix, args.child_b, args.child_v, args.out_dir, "child")
+        if args.mother_v and args.mother_b:
+            m_phased_v1 = i_phase(args.spechap, args.extractHairs,args.bgzip, args.tabix, args.mother_b, args.mother_v, args.out_dir, "mother")
+        if args.father_v and args.father_b:
+            f_phased_v1 = i_phase(args.spechap, args.extractHairs,args.bgzip, args.tabix, args.father_b, args.father_v, args.out_dir, "father")
 
     # print("Raw phase with only vcf")
     # raw_cmd = ""
@@ -97,7 +108,7 @@ def main():
     #     print(raw_cmd,"running error")
     #     exit
 
-
+    
     c_phased_v2 = c_phased_v1+".trio.vcf"
     m_phased_v2 = m_phased_v1+".trio.vcf"
     f_phased_v2 = f_phased_v1+".trio.vcf"

@@ -8,6 +8,8 @@ class Record:
     def __init__(self, rec: vcf.model._Record, PS: int, idx:int):
         allels=[rec.REF, rec.ALT]
         self.pos = rec.POS
+        self.ref = rec.REF
+        self.flip_num = 0
         gt_str = rec.samples[0]['GT']
         gt0 = int(gt_str[0])
         gt1 = int(gt_str[2])
@@ -56,7 +58,9 @@ class Record:
         if self.origin == 0:
             gt_str = gt0 + '|' + gt1
         elif self.origin ==1:
-            gt_str = gt1 + '|' + gt0
+            # 以spechap phase结果为准
+            if self.flip_num == 1:
+                gt_str = gt1 + '|' + gt0
 
 
         if self.phased():
@@ -99,6 +103,8 @@ class PhaseSet:
         self.origin = o
 
     def build_origin(self, child):
+        if self.starting_pos == "242212124" or self.starting_pos == 242212124:
+            print("sss")
         f_support_count = 0
         m_support_count = 0
         m_supportintersect_phase_setcount = 0
