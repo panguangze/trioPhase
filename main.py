@@ -27,12 +27,12 @@ def i_phase(spechap,extract,bgzip,tabix,bam, vcf, out_dir, name, ref):
     lst_out = os.path.join(out_dir, name+".lst")
     lst_sorted_out = os.path.join(out_dir, name+".sorted.lst")
     phased_vcf = os.path.join(out_dir, name+".phased.vcf")
-    sort_cmd = "sort -n -k3 {} > {}".format(lst_out,lst_sorted_out)
+    sort_cmd = "sort -n -k6 {} > {}".format(lst_out,lst_sorted_out)
     e_cmd = "{} --vcf {} --bam {} -o {} --ref {}".format(extract, vcf, bam, lst_out, ref)
     execute_cmd(e_cmd)
     execute_cmd(sort_cmd)
     vcf = bgzip_and_index(vcf, bgzip, tabix)
-    s_cmd = "{} -f {} -v {} -o {}".format(spechap, lst_sorted_out, vcf, phased_vcf)
+    s_cmd = "{} -f {} -v {} -o {} --hic 1 --maxfragments 300000000".format(spechap, lst_sorted_out, vcf, phased_vcf)
     execute_cmd(s_cmd)
     return phased_vcf
 def e_lst(extract, bams, vcf, out_dir, name, ref):
@@ -46,13 +46,13 @@ def e_lst(extract, bams, vcf, out_dir, name, ref):
         lst_a = lst_a+" "+lst
         execute_cmd(e_cmd)
     cat_cmd = "cat {} > {}".format(lst_a, lst_l)
-    sort_cmd = "sort -n -k3 {} > {}".format(lst_l,lst_l_sorted)
+    sort_cmd = "sort -n -k6 {} > {}".format(lst_l,lst_l_sorted)
     execute_cmd(cat_cmd)
     execute_cmd(sort_cmd)
     return lst_l_sorted
 def phase_with_lst(spechap, lst, vcf, out_file, bgzip, tabix):
     vcf = bgzip_and_index(vcf,bgzip,tabix)
-    s_cmd = "{} -f {} -v {} -o {} --keep_phasing_info".format(spechap, lst, vcf, out_file)
+    s_cmd = "{} -f {} -v {} -o {} --keep_phasing_info --hic 1 --maxfragments 300000000".format(spechap, lst, vcf, out_file)
     execute_cmd(s_cmd)
     bgzip_and_index(out_file,bgzip,tabix)
     return out_file+".gz"
