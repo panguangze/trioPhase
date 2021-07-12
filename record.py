@@ -5,7 +5,7 @@ class Record:
     def set_origin(self,o):
         self.origin = o
 
-    def __init__(self, rec: vcf.model._Record, PS: int, idx:int):
+    def __init__(self, rec, PS, idx):
         allels=[rec.REF, rec.ALT]
         self.pos = rec.POS
         self.ref = rec.REF
@@ -43,7 +43,7 @@ class Record:
     def phased(self):
         return self.ps != 0
     
-    def finalize_record(self, rec: vcf.model._Record):
+    def finalize_record(self, rec):
         if not self.phased():
             return
 
@@ -90,7 +90,7 @@ class PhaseSet:
     def contain_record(self, idx):
         return idx in self.records_idx
     
-    def insert_record(self, record : Record):
+    def insert_record(self, record ):
         self.records_idx.add(record.pos)
         self.records[record.pos] = record
 
@@ -145,7 +145,7 @@ class PhaseSet:
         hap1_hap1_support_length = 0
         # order: 0: 00 1:01, 2:10: 3:11
         # order = 0
-        s_record: Record
+        s_record
         for s_record in phase_set.records.values():
             if s_record.pos in self.records_idx:
                 intersection_length += 1
@@ -168,11 +168,11 @@ class PhaseSet:
         return need_flip
 
 class ChromosomoHaplotype:
-    def __init__(self, in_vcf: vcf.Reader, chromo: str, skip=False):
+    def __init__(self, in_vcf, chromo, skip=False):
         self.chromo_record = dict()
         self.chromo_phase_set = dict()
         self.chromo_record2phaseset_map = dict()
-        rec:vcf.model._Record
+        rec = None
         ps_label_fix = dict()
         idx = 0
 
@@ -201,7 +201,7 @@ class ChromosomoHaplotype:
             if record.ps != 0:
                 PS = record.ps
                 self.chromo_record2phaseset_map[record.pos] = PS
-                phase_set : PhaseSet
+                phase_set  = None
                 if PS in self.chromo_phase_set.keys():
                     phase_set = self.chromo_phase_set[PS]
                 else:
@@ -209,7 +209,7 @@ class ChromosomoHaplotype:
                     self.chromo_phase_set[PS] = phase_set
                 phase_set.insert_record(record)            
 
-    def connect_phase_set(self, f_phase_set: PhaseSet, s_phase_set:PhaseSet):
+    def connect_phase_set(self, f_phase_set, s_phase_set:PhaseSet):
         for record_pos, record in s_phase_set.records.items():
             f_phase_set.insert_record(record)
             self.chromo_record2phaseset_map[record_pos] = f_phase_set.starting_pos
@@ -219,7 +219,7 @@ class ChromosomoHaplotype:
     
     def finalize_chromosome_haplotype(self):
         self.chromo_record2phaseset_map.clear()
-        phase_set: PhaseSet
+        phase_set = None
         temp = dict()
         for phase_set in self.chromo_phase_set.values():
             phase_set.finalize_phaseset_label()

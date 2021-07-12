@@ -5,7 +5,7 @@ import sys
 import os
 import copy
 
-def merge_set(c_info: ChromosomoHaplotype, c_phase_set, child=True):
+def merge_set(c_info, c_phase_set, child=True):
     phase_set_keys = list(c_info.chromo_phase_set.keys())
     for phase_set_key in phase_set_keys:
         phase_set = c_info.chromo_phase_set[phase_set_key]
@@ -17,8 +17,8 @@ def merge_set(c_info: ChromosomoHaplotype, c_phase_set, child=True):
             c_info.connect_phase_set(c_phase_set, phase_set)
 
 
-def child_haplotype(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype = None,
-                    m_info: ChromosomoHaplotype = None):
+def child_haplotype(c_info, f_info = None,
+                    m_info = None):
     c_phase_set, f_phase_set, m_phase_set = merge_unphased_snp(c_info, f_info, m_info)
     merge_set(c_info, c_phase_set)
     c_phase_set.finalize_phaseset_label()
@@ -29,7 +29,7 @@ def child_haplotype(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype = N
         merge_set(m_info, m_phase_set, False)
         f_phase_set.finalize_phaseset_label()
 
-def trio_heter_source(c_r: Record, f_r: Record, m_r: Record):
+def trio_heter_source(c_r, f_r, m_r):
     a = [f_r.hap0, f_r.hap1, m_r.hap0, m_r.hap1]
     if a.count(c_r.hap0) == 2 and a.count(c_r.hap1) == 2:
         return False
@@ -49,7 +49,7 @@ def trio_heter_source(c_r: Record, f_r: Record, m_r: Record):
 
 
 # parent hap origin
-def p_hap_source(c_r: Record, p_r: Record):
+def p_hap_source(c_r, p_r):
     if c_r.hap0 == p_r.hap0:
         p_r.origin = 0
     if c_r.hap0 == p_r.hap1:
@@ -57,20 +57,20 @@ def p_hap_source(c_r: Record, p_r: Record):
 
 
 # child hap origin
-def c_hap_source(c_r: Record, p_r: Record, origin):
+def c_hap_source(c_r, p_r, origin):
     if c_r.hap0 == p_r.hap0:
         c_r.origin = origin
     if c_r.hap1 == p_r.hap0:
         c_r.origin = abs(origin - 1)
 
-def hete_to_ref_hom(rec:Record):
+def hete_to_ref_hom(rec):
     res = copy.deepcopy(rec)
     res.hap0 = res.ref
     res.hap1 = res.ref
     res.origin = -1
     return res
 
-# def phase_with_large_seg(c_rec, p_rec, c_info: ChromosomoHaplotype, p_info:ChromosomoHaplotype):
+# def phase_with_large_seg(c_rec, p_rec, c_info, p_info:ChromosomoHaplotype):
 #     # c_phase_set = c_info.chromo_phase_set[c_rec.ps]
 #     p_phase_set = p_info.chromo_phase_set[p_rec.ps]
 #     poses = list(p_phase_set.keys())
@@ -87,15 +87,15 @@ def hete_to_ref_hom(rec:Record):
         
 
         
-def merge_unphased_snp(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype, m_info: ChromosomoHaplotype):
+def merge_unphased_snp(c_info, f_info, m_info):
     # empty set , will filled by unphased snp
     c_phase_set = PhaseSet(1, 0)
     f_phase_set = PhaseSet(1, 0)
     m_phase_set = PhaseSet(1, 0)
     for pos in c_info.chromo_record.keys():
         c_rec = c_info.chromo_record[pos]
-        f_rec: Record = None
-        m_rec: Record = None
+        f_rec = None
+        m_rec = None
         if f_info != None and pos in f_info.chromo_record.keys():
             f_rec = f_info.chromo_record[pos]
         else:
@@ -161,7 +161,7 @@ def merge_unphased_snp(c_info: ChromosomoHaplotype, f_info: ChromosomoHaplotype,
     return [c_phase_set, f_phase_set, m_phase_set]
 
 
-def write_chromosome(in_vcf: vcf.Reader, out_vcf: vcf.Writer, chromo_haplotype: ChromosomoHaplotype, contig: str):
+def write_chromosome(in_vcf, out_vcf: vcf.Writer, chromo_haplotype, contig: str):
     rec: vcf.model._Record
     for rec in in_vcf.fetch(contig):
         het = rec.samples[0].gt_type
