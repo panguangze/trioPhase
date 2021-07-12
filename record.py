@@ -145,7 +145,7 @@ class PhaseSet:
         hap1_hap1_support_length = 0
         # order: 0: 00 1:01, 2:10: 3:11
         # order = 0
-        s_record
+        s_record = None
         for s_record in phase_set.records.values():
             if s_record.pos in self.records_idx:
                 intersection_length += 1
