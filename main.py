@@ -31,15 +31,21 @@ def i_phase(spechap,extract,bgzip,tabix,bam, vcf, out_dir, name, ref):
     sort_cmd = "sort -n -k6 {} > {}".format(lst_out,lst_sorted_out)
     if IS_HIC:
         e_cmd = "{} --vcf {} --bam {} -o {} --ref {} --hic 1 --maxfragments 300000000".format(extract, vcf, bam, lst_out, ref)
+        execute_cmd(e_cmd)
         vcf = bgzip_and_index(vcf, bgzip, tabix)
+        execute_cmd(sort_cmd)
         s_cmd = "{} -f {} -v {} -o {} --hic".format(spechap, lst_sorted_out, vcf, phased_vcf)
+        execute_cmd(s_cmd)
     else:
         e_cmd = "{} --vcf {} --bam {} -o {} --ref {}".format(extract, vcf, bam, lst_out, ref)
+        execute_cmd(e_cmd)
         vcf = bgzip_and_index(vcf, bgzip, tabix)
+        execute_cmd(sort_cmd)
         s_cmd = "{} -f {} -v {} -o {}".format(spechap, lst_sorted_out, vcf, phased_vcf)
-    execute_cmd(e_cmd)
-    execute_cmd(sort_cmd)
-    execute_cmd(s_cmd)
+        execute_cmd(s_cmd)
+    # execute_cmd(e_cmd)
+    # execute_cmd(sort_cmd)
+    # execute_cmd(s_cmd)
     return phased_vcf
 def e_lst(extract, bams, vcf, out_dir, name, ref):
     lst_a = ""
