@@ -67,8 +67,8 @@ def phase_with_lst(spechap, lst, vcf, out_file, bgzip, tabix):
     bgzip_and_index(out_file,bgzip,tabix)
     return out_file+".gz"
 def extract_hete(vcf,out, bcftools):
-    out_vcf = os.path.join(vcf.split("/")[-1].replace(".vcf",".hete.vcf"))
-    cmd = "bcftools view -g het {} > {}".format(vcf,out_vcf)
+    out_vcf = os.path.join(out,vcf.split("/")[-1].replace(".vcf",".hete.vcf").replace(".bcf",".hete.vcf").replace(".gz",""))
+    cmd = "{} view -g het {} > {}".format(bcftools,vcf,out_vcf)
     execute_cmd(cmd)
     return out_vcf
 def main():
