@@ -161,8 +161,8 @@ def merge_unphased_snp(c_info, f_info, m_info):
     return [c_phase_set, f_phase_set, m_phase_set]
 
 
-def write_chromosome(in_vcf, out_vcf: vcf.Writer, chromo_haplotype, contig: str):
-    rec: vcf.model._Record
+def write_chromosome(in_vcf, out_vcf, chromo_haplotype, contig):
+    rec = None
     for rec in in_vcf.fetch(contig):
         het = rec.samples[0].gt_type
         if het != 1:  # not het loci
