@@ -171,13 +171,13 @@ def main():
     f_re = os.path.join(args.out_dir,'father.reflect.vcf')
     c_re = os.path.join(args.out_dir,'child.reflect.vcf')
     if args.mother_v:
-        re_cmd = "python {}/reflect.py --hete {} --orig {} --out {}".format(args.script_root,m_phased_v2+".gz",args.mother_v, m_re)
+        re_cmd = "python {}/reflect_back.py --hete {} --orig {} --out {}".format(args.script_root,m_phased_v2+".gz",args.mother_v, m_re)
         execute_cmd(re_cmd)
     if args.father_v:
-        re_cmd = "python {}/reflect.py --hete {} --orig {} --out {}".format(args.script_root,f_phased_v2+".gz",args.father_v, f_re)
+        re_cmd = "python {}/reflect_back.py --hete {} --orig {} --out {}".format(args.script_root,f_phased_v2+".gz",args.father_v, f_re)
         execute_cmd(re_cmd)
     if args.child_v:
-        re_cmd = "python {}/reflect.py --hete {} --orig {} --out {}".format(args.script_root,c_phased_v2+".gz",args.child_v, c_re)
+        re_cmd = "python {}/reflect_back.py --hete {} --orig {} --out {}".format(args.script_root,c_phased_v2+".gz",args.child_v, c_re)
         execute_cmd(re_cmd)
     print("Phase with only vcf")
     m_re_gz = bgzip_and_index(m_re, args.bgzip, args.tabix)
