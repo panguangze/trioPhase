@@ -209,7 +209,7 @@ class ChromosomoHaplotype:
                     self.chromo_phase_set[PS] = phase_set
                 phase_set.insert_record(record)            
 
-    def connect_phase_set(self, f_phase_set, s_phase_set:PhaseSet):
+    def connect_phase_set(self, f_phase_set, s_phase_set):
         for record_pos, record in s_phase_set.records.items():
             f_phase_set.insert_record(record)
             self.chromo_record2phaseset_map[record_pos] = f_phase_set.starting_pos
