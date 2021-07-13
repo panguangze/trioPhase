@@ -1,12 +1,14 @@
 ## require
 python require, numpy,pysam,pyvcf
 
+
 spechap https://github.com/deepomicslab/SpecHap
 
 
+bcftools, tabix and bgzip
 
-tabix and bgzip
-## Step by Step
+
+## Step by Step（Deprecate, please using One step cmd）
 ### Phase with bam 
 #### child 
 * step1 (If you have only father or mother data, cat is no need)
@@ -37,8 +39,8 @@ tabix and bgzip
 ### Phase with only vcf
 python merge_family.py -f xx.vcf -m xx.vcf -c xx.vcf -o out_dir
 ## One step
-
-python main.py --spechap /home/caronkey/Documents/cityu/triophase/SpecHap/cmake-build-debug/SpecHap --extractHairs /home/caronkey/Documents/cityu/hap/extracthairs/cmake-build-debug/ExtractHAIRs --child_v ~/remote/dong_hpc/data_X101SC19050094-Z01-B10-21/2.cleandata/s0114-1_FDHG190451812-1a/chr1.vcf.gz --child_b ~/remote/dong_hpc/data_X101SC19050094-Z01-B10-21/2.cleandata/s0114-1_FDHG190451812-1a/chr1.bam -o test2 --mother_b ~/remote/dong_hpc/data_X101SC19050094-Z01-B10-21/2.cleandata/s0114-1_FDHG190451812-1a/chr1.bam --mother_v ~/remote/dong_hpc/data_X101SC19050094-Z01-B10-21/2.cleandata/s0114-1_FDHG190451812-1a/chr1.vcf.gz --bgzip bgzip --tabix tabix --father_b ~/remote/dong_hpc/data_X101SC19050094-Z01-B10-21/2.cleandata/s0114-1_FDHG190451812-1a/chr1.bam --father_v ~/remote/dong_hpc/data_X101SC19050094-Z01-B10-21/2.cleandata/s0114-1_FDHG190451812-1a/chr1.vcf.gz
+** \*_v means vcf file, \*_b means bam file **
+python main.py --spechap xxx --extractHairs xxx --bcftools xxx --child_v xxx --child_b xxx --bgzip xxx --tabix xxx --out_dir xxx --ref xxx --script_root /home/caronkey/Documents/cityu/trio_phase --mother_v xx --mother_b xx --father_v xxx --father_b xxx
 
 
 final output : *.phased.vcf.trio.vcf.final
