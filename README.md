@@ -39,7 +39,9 @@ bcftools, tabix and bgzip
 ### Phase with only vcf
 python merge_family.py -f xx.vcf -m xx.vcf -c xx.vcf -o out_dir
 ## One step
-**\*_v means vcf file, \*_b means bam fil**
+*\*_v means vcf file, \*_b means bam file*
+
+
 python main.py --spechap xxx --extractHairs xxx --bcftools xxx --child_v xxx --child_b xxx --bgzip xxx --tabix xxx --out_dir xxx --ref xxx --script_root /home/caronkey/Documents/cityu/trio_phase --mother_v xx --mother_b xx --father_v xxx --father_b xxx
 
 
