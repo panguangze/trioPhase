@@ -29,14 +29,16 @@ def i_phase(spechap,extract,bgzip,tabix,bam, vcf, out_dir, name, ref):
     lst_sorted_out = os.path.join(out_dir, name+".sorted.lst")
     phased_vcf = os.path.join(out_dir, name+".phased.vcf")
     sort_cmd = "sort -n -k6 {} > {}".format(lst_out,lst_sorted_out)
-    e_cmd = "{} --vcf {} --bam {} -o {} --ref {}".format(extract, vcf, bam, lst_out, ref)
-    s_cmd = "{} -f {} -v {} -o {}".format(spechap, lst_sorted_out, vcf, phased_vcf)
     if IS_HIC:
         e_cmd = "{} --vcf {} --bam {} -o {} --ref {} --hic 1 --maxfragments 300000000".format(extract, vcf, bam, lst_out, ref)
+        vcf = bgzip_and_index(vcf, bgzip, tabix)
         s_cmd = "{} -f {} -v {} -o {} --hic".format(spechap, lst_sorted_out, vcf, phased_vcf)
+    else:
+        e_cmd = "{} --vcf {} --bam {} -o {} --ref {}".format(extract, vcf, bam, lst_out, ref)
+        vcf = bgzip_and_index(vcf, bgzip, tabix)
+        s_cmd = "{} -f {} -v {} -o {}".format(spechap, lst_sorted_out, vcf, phased_vcf)
     execute_cmd(e_cmd)
     execute_cmd(sort_cmd)
-    vcf = bgzip_and_index(vcf, bgzip, tabix)
     execute_cmd(s_cmd)
     return phased_vcf
 def e_lst(extract, bams, vcf, out_dir, name, ref):
@@ -178,9 +180,9 @@ def main():
         re_cmd = "python {}/reflect.py --hete {} --orig {} --out {}".format(args.script_root,c_phased_v2+".gz",args.child_v, c_re)
         execute_cmd(re_cmd)
     print("Phase with only vcf")
-    m_re_gz = bgzip_and_index(m_re)
-    f_re_gz = bgzip_and_index(f_re)
-    c_re_gz = bgzip_and_index(c_re)
+    m_re_gz = bgzip_and_index(m_re, args.bgzip, args.tabix)
+    f_re_gz = bgzip_and_index(f_re, args.bgzip, args.tabix)
+    c_re_gz = bgzip_and_index(c_re, args.bgzip, args.tabix)
 
     if not args.mother_v:
         raw_cmd = "python {}/merge_family.py -f {} -c {} -o {}".format(args.script_root,f_re_gz, c_re_gz, args.out_dir)
